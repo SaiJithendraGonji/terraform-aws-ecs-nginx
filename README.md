@@ -62,7 +62,7 @@ Terraform 1.10. No DynamoDB table is required.
 - RDS has deletion protection enabled. A `terraform destroy` will require manually disabling
   it first via the AWS console or by setting `deletion_protection = false` before destroy.
 
-## Deployment Evidence
+## Succesfully deployed the ECS Fargate and complete Infrastructure 
 
 ### terraform apply - 38 resources, 0 errors
 
