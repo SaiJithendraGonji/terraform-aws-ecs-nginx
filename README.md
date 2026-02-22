@@ -25,6 +25,21 @@ Provisions a nginx service on ECS Fargate behind an Application Load Balancer, w
 - RDS credentials managed via Secrets Manager with automatic rotation, managed natively by RDS
 - HTTPS support behind a feature flag, disabled by default
 
+## Repository Structure
+```
+terraform-arenko/
+├── screenshots/                  # Provisioned resources
+├── .gitignore
+├── .terraform.lock.hcl
+├── README.md
+├── lb.tf                         # ALB, listeners, target group
+├── main.tf                       # all resources in sequence
+├── outputs.tf                    # essential outputs
+├── provider.tf                   # terraform block, provider, S3 backend
+└── variables.tf                  # all input variables
+```
+```
+
 ## Prerequisites
 
 - Terraform >= 1.10.0
@@ -87,6 +102,59 @@ Terraform 1.10. No DynamoDB table is required.
 ### Secrets Manager - rotation enabled, managed by RDS
 
 ![secrets manager](screenshots/secrets_manager.png)
+
+
+## To promote code reusability and maintain consistency across environments, we can implement a modular Terraform architecture that enables custom provisioning for multiple environments (such as dev, staging, and production) using reusable, parameterized modules.
+
+The current flat Terraform structure is suitable for a single environment, but it does not scale effectively for multi env's provisioning. To properly address reusability and support dev, staging, UAT, and prod, the next logical step is to refactor into a modular architecture.
+
+In this model, each module represents a specific layer of the infrastructure stack and contains no env specific logic. The environments layer consumes these reusable modules by passing different variable values. for example, smaller instance sizes in dev and stricter configurations in production.
+
+Additionally, each environment maintains complete isolation by using a separate S3 backend key for state management, ensuring independent state files and minimizing cross environment risk.
+
+```
+terraform-arenko/
+├── modules/
+│   ├── networking/
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│   ├── ecs/
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│   ├── alb/
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│   └── rds/
+│       ├── main.tf
+│       ├── variables.tf
+│       └── outputs.tf
+│
+└── environments/
+    ├── dev/
+    │   ├── main.tf
+    │   ├── provider.tf
+    │   ├── variables.tf
+    │   └── terraform.tfvars.json
+    ├── staging/
+    │   ├── main.tf
+    │   ├── provider.tf
+    │   ├── variables.tf
+    │   └── terraform.tfvars.json
+    ├── uat/
+    │   ├── main.tf
+    │   ├── provider.tf
+    │   ├── variables.tf
+    │   └── terraform.tfvars.json
+    └── prod/
+        ├── main.tf
+        ├── provider.tf
+        ├── variables.tf
+        └── terraform.tfvars.json
+```
+
 
 ## References
 
